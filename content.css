@@ -1,0 +1,1212 @@
+/* ========== VARIABLES ========== */
+:root {
+  --primary: #8a5cf6;
+  --primary-hover: #7c3aed;
+  --primary-light: rgba(138, 92, 246, 0.1);
+  --primary-gradient: linear-gradient(135deg, #8a5cf6, #ec4899);
+  --secondary: #ec4899;
+  --secondary-light: rgba(236, 72, 153, 0.1);
+  --background: rgba(243, 242, 239, 0.6);
+  --foreground: #333;
+  --muted: #666;
+  --border: rgba(224, 224, 224, 0.5);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --radius: 12px;
+  --transition: all 0.3s ease;
+}
+
+/* ========== HIDDEN ELEMENTS ========== */
+.hidden {
+  display: none !important;
+}
+
+/* ========== FOCUS MODE STYLES ========== */
+/* Le mode Focus ne fait que masquer l'interface, pas filtrer le contenu */
+body.feed-focus-mode-active .scaffold-layout__sidebar,
+body.feed-focus-mode-active .scaffold-layout__aside,
+body.feed-focus-mode-active .global-nav,
+body.feed-focus-mode-active footer,
+body.feed-focus-mode-active .scaffold-layout__header,
+body.feed-focus-mode-active .ad-banner-container,
+body.feed-focus-mode-active .feed-shared-update-v2__sponsorship,
+body.feed-focus-mode-active .feed-shared-update--sponsored,
+body.feed-focus-mode-active .right-rail,
+body.feed-focus-mode-active .feed-follows-module,
+body.feed-focus-mode-active .feed-shared-news-module,
+body.feed-focus-mode-active .feed-shared-job-module,
+body.feed-focus-mode-active .feed-shared-promo-module,
+body.feed-focus-mode-active .global-nav__secondary-items,
+body.feed-focus-mode-active .global-nav-settings {
+  display: none !important;
+}
+
+body.feed-focus-mode-active .scaffold-layout__main {
+  width: 100% !important;
+  max-width: 800px !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+}
+
+/* ========== FLOATING BUTTON ========== */
+.feed-focus-action-button {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(138, 92, 246, 0.3);
+  cursor: pointer;
+  z-index: 9999;
+  font-size: 24px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  user-select: none;
+  touch-action: none;
+}
+
+.feed-focus-action-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(138, 92, 246, 0.4);
+}
+
+.feed-focus-action-button-dragging {
+  opacity: 0.8;
+  transform: scale(0.95) !important;
+  box-shadow: 0 8px 24px rgba(138, 92, 246, 0.5) !important;
+  cursor: grabbing !important;
+}
+
+/* ========== OVERLAY ========== */
+.feed-focus-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9997;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* ========== SIDEBAR STYLES ========== */
+.feed-focus-sidebar {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+    "Helvetica Neue", sans-serif;
+  width: 380px;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  right: -380px;
+  background-color: #f9fafb;
+  color: #1f2937;
+  overflow-y: auto;
+  z-index: 9998;
+  transition: right 0.3s ease;
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.feed-focus-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--primary-gradient);
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.feed-focus-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.feed-focus-logo {
+  width: 36px;
+  height: 36px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.feed-focus-sidebar-header h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.feed-focus-icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: white;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.feed-focus-icon-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ========== SIDEBAR NAVIGATION ========== */
+.feed-focus-sidebar-navigation {
+  display: flex;
+  background-color: white;
+  padding: 0 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.feed-focus-nav-button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 500;
+  transition: var(--transition);
+  position: relative;
+}
+
+.feed-focus-nav-button:hover {
+  color: var(--primary);
+}
+
+.feed-focus-nav-button.active {
+  color: var(--primary);
+}
+
+.feed-focus-nav-button.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 25%;
+  width: 50%;
+  height: 2px;
+  background-color: var(--primary);
+  border-radius: 2px;
+}
+
+/* ========== TAB CONTENT ========== */
+.feed-focus-tab-content {
+  display: none;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  background-color: #f9fafb;
+}
+
+.feed-focus-tab-content.active {
+  display: block;
+}
+
+/* ========== SECTION HEADER ========== */
+.feed-focus-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.feed-focus-section-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.feed-focus-info-icon {
+  font-size: 14px;
+  color: #6b7280;
+  cursor: help;
+}
+
+.feed-focus-back-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: var(--transition);
+}
+
+.feed-focus-back-button:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+/* ========== ACTION BUTTONS ========== */
+.feed-focus-main-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.feed-focus-main-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+}
+
+.feed-focus-main-action.primary {
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+}
+
+.feed-focus-main-action.primary:hover {
+  box-shadow: 0 4px 12px rgba(138, 92, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.feed-focus-main-action.secondary {
+  background-color: white;
+  color: var(--primary);
+  border: 1px solid var(--primary-light);
+}
+
+.feed-focus-main-action.secondary:hover {
+  background-color: var(--primary-light);
+}
+
+.feed-focus-main-action.apply {
+  background-color: white;
+  color: var(--primary);
+  border: 1px solid var(--primary-light);
+}
+
+.feed-focus-main-action.apply:hover {
+  background-color: var(--primary-light);
+}
+
+.feed-focus-main-action.unapply {
+  background-color: white;
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  display: none;
+}
+
+.feed-focus-main-action.unapply:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* ========== FEEDS LIST ========== */
+.feed-focus-feeds-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* ========== EMPTY STATE ========== */
+.feed-focus-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  border: 1px dashed #e5e7eb;
+}
+
+.feed-focus-empty-state p {
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ========== FEED ACCORDION ========== */
+.feed-focus-feed-accordion {
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+  cursor: grab;
+  position: relative;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.feed-focus-feed-accordion:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-color: rgba(138, 92, 246, 0.2);
+}
+
+.feed-focus-feed-accordion-dragging {
+  opacity: 0.7;
+  cursor: grabbing;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+  transform: scale(1.02);
+  z-index: 100;
+}
+
+.feed-focus-feed-accordion-above {
+  border-top: 2px solid var(--primary);
+  padding-top: 4px;
+  margin-top: -4px;
+}
+
+.feed-focus-feed-accordion-below {
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+}
+
+.feed-focus-feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.feed-focus-feed-header:hover {
+  background-color: #f9fafb;
+}
+
+.feed-focus-feed-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.feed-focus-feed-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.feed-focus-feed-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.feed-focus-feed-accordion.open .feed-focus-feed-toggle {
+  transform: rotate(180deg);
+}
+
+.feed-focus-feed-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.feed-focus-feed-accordion.open .feed-focus-feed-content {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* ========== PROFILES SLIDER ========== */
+.feed-focus-profiles-slider {
+  display: flex;
+  overflow-x: auto;
+  padding: 16px;
+  gap: 12px;
+  border-bottom: 1px solid #f3f4f6;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(138, 92, 246, 0.3) transparent;
+}
+
+.feed-focus-profiles-slider::-webkit-scrollbar {
+  height: 6px;
+}
+
+.feed-focus-profiles-slider::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.feed-focus-profiles-slider::-webkit-scrollbar-thumb {
+  background-color: rgba(138, 92, 246, 0.3);
+  border-radius: 6px;
+}
+
+.feed-focus-profile-card {
+  min-width: 80px;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.feed-focus-profile-card-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.feed-focus-profile-card-name {
+  font-size: 12px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.feed-focus-profile-card-actions {
+  display: none;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.feed-focus-profile-card:hover .feed-focus-profile-card-actions {
+  display: flex;
+}
+
+.feed-focus-profile-card-action {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.feed-focus-profile-card-action:hover {
+  color: var(--primary);
+}
+
+.feed-focus-profile-card-action.remove:hover {
+  color: #ef4444;
+}
+
+/* ========== FEED ACTIONS ========== */
+.feed-focus-feed-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+
+.feed-focus-feed-action {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  background: none;
+  border: none;
+}
+
+.feed-focus-feed-action.apply-feed {
+  color: var(--primary);
+}
+
+.feed-focus-feed-action.apply-feed:hover {
+  background-color: var(--primary-light);
+}
+
+.feed-focus-feed-action.unapply-feed {
+  color: #ef4444;
+}
+
+.feed-focus-feed-action.unapply-feed:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.feed-focus-feed-action.edit-feed {
+  color: #6b7280;
+}
+
+.feed-focus-feed-action.edit-feed:hover {
+  background-color: #f3f4f6;
+}
+
+.feed-focus-feed-action.delete-feed {
+  color: #6b7280;
+}
+
+.feed-focus-feed-action.delete-feed:hover {
+  background-color: #f3f4f6;
+  color: #ef4444;
+}
+
+/* ========== UPGRADE PANEL ========== */
+.feed-focus-upgrade-panel {
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 24px;
+  border: 1px solid #e5e7eb;
+}
+
+.feed-focus-upgrade-panel h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.feed-focus-upgrade-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+}
+
+.feed-focus-upgrade-features li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.feed-focus-button-upgrade {
+  width: 100%;
+  padding: 10px;
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.feed-focus-button-upgrade:hover {
+  box-shadow: 0 4px 12px rgba(138, 92, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+/* ========== PEOPLE LIST ========== */
+.feed-focus-people-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feed-focus-profile-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  transition: var(--transition);
+}
+
+.feed-focus-profile-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-color: rgba(138, 92, 246, 0.2);
+}
+
+.feed-focus-profile-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feed-focus-profile-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.feed-focus-profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.feed-focus-profile-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.feed-focus-profile-title {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.feed-focus-profile-feed {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.feed-focus-profile-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.feed-focus-profile-action {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.feed-focus-profile-action:hover {
+  background-color: #f3f4f6;
+}
+
+.feed-focus-profile-action.view-profile:hover {
+  color: var(--primary);
+}
+
+.feed-focus-profile-action.remove-profile:hover {
+  color: #ef4444;
+}
+
+/* ========== SEARCH CONTAINER ========== */
+.feed-focus-search-container {
+  display: flex;
+  margin-bottom: 16px;
+}
+
+.feed-focus-search-input,
+#feed-focus-people-search {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px 0 0 6px;
+  font-size: 14px;
+  outline: none;
+  transition: var(--transition);
+}
+
+.feed-focus-search-input:focus,
+#feed-focus-people-search:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.feed-focus-search-button {
+  padding: 10px 12px;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.feed-focus-search-button:hover {
+  background-color: var(--primary-hover);
+}
+
+/* ========== SETTINGS ========== */
+.feed-focus-setting {
+  margin-bottom: 20px;
+  background-color: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.feed-focus-setting-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.feed-focus-setting label {
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.feed-focus-setting-description {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.feed-focus-toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.feed-focus-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.feed-focus-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.feed-focus-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e5e7eb;
+  transition: var(--transition);
+  border-radius: 24px;
+}
+
+.feed-focus-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: var(--transition);
+  border-radius: 50%;
+}
+
+.feed-focus-toggle input:checked + .feed-focus-slider {
+  background-color: var(--primary);
+}
+
+.feed-focus-toggle input:checked + .feed-focus-slider:before {
+  transform: translateX(20px);
+}
+
+#feed-focus-keyword-filter,
+#feed-focus-content-type {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: var(--transition);
+}
+
+#feed-focus-keyword-filter:focus,
+#feed-focus-content-type:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.feed-focus-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.feed-focus-button-primary,
+.feed-focus-button-secondary {
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.feed-focus-button-primary {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+}
+
+.feed-focus-button-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.feed-focus-button-secondary {
+  background-color: white;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+.feed-focus-button-secondary:hover {
+  background-color: #f9fafb;
+}
+
+/* ========== FEED SELECTOR ========== */
+.feed-focus-feed-selector {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  max-width: 90%;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  display: none;
+  overflow: hidden;
+}
+
+.feed-focus-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--primary-gradient);
+  color: white;
+}
+
+.feed-focus-selector-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.feed-focus-selector-close {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+
+.feed-focus-selector-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.feed-focus-selector-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.feed-focus-selector-profile-image {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.feed-focus-selector-profile-info {
+  flex: 1;
+}
+
+.feed-focus-selector-profile-name {
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.feed-focus-selector-profile-title {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.feed-focus-selector-label {
+  padding: 16px 16px 8px;
+  font-weight: 500;
+}
+
+.feed-focus-feed-list {
+  padding: 0 16px 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.feed-focus-feed-item {
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.feed-focus-feed-item:hover {
+  border-color: var(--primary-light);
+}
+
+.feed-focus-feed-item.active {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+}
+
+.feed-focus-feed-item-name {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.feed-focus-feed-item-count {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.feed-focus-selector-empty {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.feed-focus-selector-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.feed-focus-selector-button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.feed-focus-selector-button.primary {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+}
+
+.feed-focus-selector-button.primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.feed-focus-selector-button.primary:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.feed-focus-selector-button.secondary {
+  background-color: white;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+.feed-focus-selector-button.secondary:hover {
+  background-color: #f9fafb;
+}
+
+/* ========== MODAL ========== */
+.feed-focus-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.feed-focus-modal-content {
+  background-color: white;
+  border-radius: 12px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.feed-focus-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--primary-gradient);
+  color: white;
+  border-radius: 12px 12px 0 0;
+}
+
+.feed-focus-modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.feed-focus-close-modal {
+  font-size: 24px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+
+.feed-focus-close-modal:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.feed-focus-modal-body {
+  padding: 16px;
+}
+
+.feed-focus-form-group {
+  margin-bottom: 16px;
+}
+
+.feed-focus-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.feed-focus-form-group input,
+.feed-focus-form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: var(--transition);
+}
+
+.feed-focus-form-group input:focus,
+.feed-focus-form-group textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.feed-focus-form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.feed-focus-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* ========== PROFILE BUTTON ========== */
+.feed-focus-profile-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: white;
+  color: var(--primary);
+  border: 1px solid var(--primary-light);
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.feed-focus-profile-button:hover {
+  background-color: var(--primary-light);
+}
+
+/* ========== NOTIFICATION ========== */
+.feed-focus-notification {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  padding: 12px 20px;
+  background-color: white;
+  color: #1f2937;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10000;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  max-width: 90%;
+}
+
+.feed-focus-notification.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.feed-focus-notification.success {
+  border-left: 4px solid #10b981;
+}
+
+.feed-focus-notification.error {
+  border-left: 4px solid #ef4444;
+}
+
+.feed-focus-notification.warning {
+  border-left: 4px solid #f59e0b;
+}
+
+.feed-focus-notification.info {
+  border-left: 4px solid #3b82f6;
+}

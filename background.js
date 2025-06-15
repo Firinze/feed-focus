@@ -365,7 +365,7 @@ async function deleteFeed(feedId) {
 
 async function addProfileToFeed(profile, feedId) {
   try {
-    const response = await fetch(`${API_URL}/profiles`, {
+    const response = await fetch(`${API_URL}/feeds/${feedId}/profiles`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${state.token}`,
@@ -377,7 +377,6 @@ async function addProfileToFeed(profile, feedId) {
         imageUrl: profile.imageUrl,
         linkedinUrl: profile.linkedinUrl,
         uniqueId: profile.uniqueId,
-        feedId,
       }),
     })
     if (!response.ok) {

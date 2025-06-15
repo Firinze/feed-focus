@@ -27,6 +27,7 @@ const state = {
 
 // Initialisation
 document.addEventListener("DOMContentLoaded", async () => {
+  console.log("Popup chargée, initialisation...")
   await checkAuthStatus()
   setupEventListeners()
 })
@@ -36,6 +37,7 @@ async function checkAuthStatus() {
   showLoadingState()
 
   try {
+    console.log("Vérification du statut d'authentification...")
     // Récupérer le token depuis le stockage local
     const { token, user, authToken } = await window.chrome.storage.local.get(["token", "user", "authToken"])
 
@@ -120,77 +122,98 @@ async function loadUserData() {
 
 // Configurer les écouteurs d'événements
 function setupEventListeners() {
+  console.log("Configuration des écouteurs d'événements...")
+
   // Bouton de connexion
-  loginButton.addEventListener("click", () => {
-    window.chrome.tabs.create({ url: `${APP_URL}/login?extension=true` })
-  })
+  if (loginButton) {
+    console.log("Ajout de l'écouteur sur le bouton de connexion")
+    loginButton.addEventListener("click", () => {
+      console.log("Bouton de connexion cliqué")
+      window.chrome.runtime.sendMessage({ action: "openLoginPage" }, (response) => {
+        console.log("Réponse à openLoginPage:", response)
+        if (window.chrome.runtime.lastError) {
+          console.error("Erreur:", window.chrome.runtime.lastError)
+        }
+      })
+    })
+  } else {
+    console.error("Bouton de connexion non trouvé dans le DOM")
+  }
 
   // Bouton de déconnexion
-  logoutButton.addEventListener("click", async () => {
-    try {
-      await fetch(`${API_URL}/auth/logout`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${state.token}`,
-        },
-      })
-    } catch (error) {
-      console.error("Erreur lors de la déconnexion:", error)
-    }
+  if (logoutButton) {
+    logoutButton.addEventListener("click", async () => {
+      try {
+        await fetch(`${API_URL}/auth/logout`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${state.token}`,
+          },
+        })
+      } catch (error) {
+        console.error("Erreur lors de la déconnexion:", error)
+      }
 
-    // Supprimer les données locales
-    await window.chrome.storage.local.remove(["token", "user", "authToken", "focusMode", "currentFeedId"])
+      // Supprimer les données locales
+      await window.chrome.storage.local.remove(["token", "user", "authToken", "focusMode", "currentFeedId"])
 
-    // Mettre à jour l'état
-    state.isAuthenticated = false
-    state.token = null
-    state.user = null
-    state.feeds = []
+      // Mettre à jour l'état
+      state.isAuthenticated = false
+      state.token = null
+      state.user = null
+      state.feeds = []
 
-    showLoggedOutState()
-  })
+      showLoggedOutState()
+    })
+  }
 
   // Bouton d'ouverture du tableau de bord
-  openDashboardButton.addEventListener("click", () => {
-    window.chrome.tabs.create({ url: `${APP_URL}/dashboard` })
-  })
+  if (openDashboardButton) {
+    openDashboardButton.addEventListener("click", () => {
+      window.chrome.tabs.create({ url: `${APP_URL}/dashboard` })
+    })
+  }
 
   // Bouton d'ouverture de LinkedIn
-  openLinkedInButton.addEventListener("click", () => {
-    window.chrome.tabs.create({ url: "https://www.linkedin.com/feed/" })
-  })
+  if (openLinkedInButton) {
+    openLinkedInButton.addEventListener("click", () => {
+      window.chrome.tabs.create({ url: "https://www.linkedin.com/feed/" })
+    })
+  }
 
   // Toggle du mode focus
-  focusModeToggle.addEventListener("change", async () => {
-    const focusMode = focusModeToggle.checked
-    focusModeStatus.textContent = focusMode ? "Activé" : "Désactivé"
+  if (focusModeToggle) {
+    focusModeToggle.addEventListener("change", async () => {
+      const focusMode = focusModeToggle.checked
+      focusModeStatus.textContent = focusMode ? "Activé" : "Désactivé"
 
-    // Mettre à jour le stockage local
-    await window.chrome.storage.local.set({ focusMode })
+      // Mettre à jour le stockage local
+      await window.chrome.storage.local.set({ focusMode })
 
-    // Mettre à jour les paramètres sur le serveur
-    try {
-      await fetch(`${API_URL}/settings`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${state.token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ focusMode }),
-      })
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du mode focus:", error)
-    }
+      // Mettre à jour les paramètres sur le serveur
+      try {
+        await fetch(`${API_URL}/settings`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${state.token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ focusMode }),
+        })
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour du mode focus:", error)
+      }
 
-    // Appliquer le mode focus aux onglets LinkedIn ouverts
-    window.chrome.tabs.query({ url: "*://*.linkedin.com/*" }, (tabs) => {
-      tabs.forEach((tab) => {
-        window.chrome.tabs.sendMessage(tab.id, {
-          action: focusMode ? "applyFocusMode" : "removeFocusMode",
+      // Appliquer le mode focus aux onglets LinkedIn ouverts
+      window.chrome.tabs.query({ url: "*://*.linkedin.com/*" }, (tabs) => {
+        tabs.forEach((tab) => {
+          window.chrome.tabs.sendMessage(tab.id, {
+            action: focusMode ? "applyFocusMode" : "removeFocusMode",
+          })
         })
       })
     })
-  })
+  }
 }
 
 // Afficher l'état de chargement
@@ -242,3 +265,9 @@ window.chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     )
   }
 })
+
+// Fonction pour ouvrir directement la page de connexion
+function openLoginPage() {
+  console.log("Ouverture de la page de connexion...")
+  window.chrome.tabs.create({ url: `${APP_URL}/login?extension=true` })
+}

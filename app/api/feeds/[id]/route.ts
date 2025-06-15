@@ -1,138 +1,158 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
+import jwt from "jsonwebtoken"
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const supabase = createClient()
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
-  }
-
-  const { data: feed, error } = await supabase
-    .from("feeds")
-    .select(`
-      *,
-      feed_profiles(
-        profiles(*)
-      )
-    `)
-    .eq("id", params.id)
-    .eq("user_id", session.user.id)
-    .single()
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  if (!feed) {
-    return NextResponse.json({ error: "Feed non trouvé" }, { status: 404 })
-  }
-
-  // Transformer les données pour correspondre au format attendu par l'extension
-  const profiles = feed.feed_profiles
-    ? feed.feed_profiles
-        .filter((fp: any) => fp.profiles)
-        .map((fp: any) => ({
-          id: fp.profiles.id,
-          uniqueId: fp.profiles.unique_id,
-          name: fp.profiles.name,
-          title: fp.profiles.title,
-          imageUrl: fp.profiles.image_url,
-          linkedinUrl: fp.profiles.linkedin_url,
-        }))
-    : []
-
-  const transformedFeed = {
-    id: feed.id,
-    name: feed.name,
-    description: feed.description,
-    profiles,
-  }
-
-  return NextResponse.json(transformedFeed)
-}
-
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  const supabase = createClient()
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (!session) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
-  }
-
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { name, description } = await request.json()
-
-    if (!name) {
-      return NextResponse.json({ error: "Le nom est requis" }, { status: 400 })
+    const authHeader = request.headers.get("authorization")
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "No token provided" }, { status: 401 })
     }
 
-    // Vérifier que le feed appartient à l'utilisateur
-    const { data: existingFeed, error: fetchError } = await supabase
-      .from("feeds")
-      .select()
-      .eq("id", params.id)
-      .eq("user_id", session.user.id)
-      .single()
+    const token = authHeader.substring(7)
+    const decoded = jwt.verify(token, process.env.SUPABASE_JWT_SECRET!) as any
 
-    if (fetchError || !existingFeed) {
-      return NextResponse.json({ error: "Feed non trouvé" }, { status: 404 })
+    if (!decoded || !decoded.sub) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
 
-    const { data, error } = await supabase
+    const supabase = createClient()
+
+    // Récupérer le feed avec ses profils
+    const { data: feed, error: feedError } = await supabase
       .from("feeds")
-      .update({
+      .select(`
+        id,
         name,
         description,
-      })
+        created_at,
+        updated_at,
+        feed_profiles (
+          profile_id,
+          profiles (
+            id,
+            name,
+            title,
+            image_url,
+            linkedin_url,
+            unique_id
+          )
+        )
+      `)
       .eq("id", params.id)
-      .select()
+      .eq("user_id", decoded.sub)
+      .single()
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (feedError) {
+      return NextResponse.json({ error: "Feed not found" }, { status: 404 })
     }
 
-    return NextResponse.json(data[0])
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    // Transformer les données
+    const transformedFeed = {
+      id: feed.id,
+      name: feed.name,
+      description: feed.description,
+      created_at: feed.created_at,
+      updated_at: feed.updated_at,
+      profiles: feed.feed_profiles.map((fp) => ({
+        id: fp.profiles.id,
+        name: fp.profiles.name,
+        title: fp.profiles.title,
+        imageUrl: fp.profiles.image_url,
+        linkedinUrl: fp.profiles.linkedin_url,
+        uniqueId: fp.profiles.unique_id,
+      })),
+    }
+
+    return NextResponse.json(transformedFeed)
+  } catch (error) {
+    console.error("Error in GET /api/feeds/[id]:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  const supabase = createClient()
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const authHeader = request.headers.get("authorization")
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "No token provided" }, { status: 401 })
+    }
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    const token = authHeader.substring(7)
+    const decoded = jwt.verify(token, process.env.SUPABASE_JWT_SECRET!) as any
 
-  if (!session) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+    if (!decoded || !decoded.sub) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+    }
+
+    const { name, description } = await request.json()
+
+    if (!name || name.trim().length === 0) {
+      return NextResponse.json(
+        {
+          error: "Feed name is required",
+        },
+        { status: 400 },
+      )
+    }
+
+    const supabase = createClient()
+
+    // Mettre à jour le feed
+    const { data: feed, error: feedError } = await supabase
+      .from("feeds")
+      .update({
+        name: name.trim(),
+        description: description?.trim() || "",
+      })
+      .eq("id", params.id)
+      .eq("user_id", decoded.sub)
+      .select()
+      .single()
+
+    if (feedError) {
+      return NextResponse.json({ error: "Feed not found or update failed" }, { status: 404 })
+    }
+
+    return NextResponse.json({
+      id: feed.id,
+      name: feed.name,
+      description: feed.description,
+      created_at: feed.created_at,
+      updated_at: feed.updated_at,
+    })
+  } catch (error) {
+    console.error("Error in PUT /api/feeds/[id]:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
+}
 
-  // Vérifier que le feed appartient à l'utilisateur
-  const { data: existingFeed, error: fetchError } = await supabase
-    .from("feeds")
-    .select()
-    .eq("id", params.id)
-    .eq("user_id", session.user.id)
-    .single()
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const authHeader = request.headers.get("authorization")
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "No token provided" }, { status: 401 })
+    }
 
-  if (fetchError || !existingFeed) {
-    return NextResponse.json({ error: "Feed non trouvé" }, { status: 404 })
+    const token = authHeader.substring(7)
+    const decoded = jwt.verify(token, process.env.SUPABASE_JWT_SECRET!) as any
+
+    if (!decoded || !decoded.sub) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+    }
+
+    const supabase = createClient()
+
+    // Supprimer le feed (les relations feed_profiles seront supprimées automatiquement grâce à ON DELETE CASCADE)
+    const { error: feedError } = await supabase.from("feeds").delete().eq("id", params.id).eq("user_id", decoded.sub)
+
+    if (feedError) {
+      return NextResponse.json({ error: "Feed not found or delete failed" }, { status: 404 })
+    }
+
+    return NextResponse.json({ message: "Feed deleted successfully" })
+  } catch (error) {
+    console.error("Error in DELETE /api/feeds/[id]:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-
-  const { error } = await supabase.from("feeds").delete().eq("id", params.id)
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  return NextResponse.json({ success: true })
 }

@@ -1,63 +1,66 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/utils/supabase/server"
-import jwt from "jsonwebtoken"
+import { type NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization")
+    const supabase = createClient();
+
+    // Récupérer et vérifier l'utilisateur via le header Authorization
+    const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "No token provided" }, { status: 401 })
+      return NextResponse.json({ error: "Aucun token fourni" }, { status: 401 });
     }
 
-    const token = authHeader.substring(7)
+    const token = authHeader.replace("Bearer ", "");
 
-    // Vérifier le token JWT
-    const decoded = jwt.verify(token, process.env.SUPABASE_JWT_SECRET!) as any
+    // Appelle Supabase pour vérifier l'authenticité du token
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
 
-    if (!decoded || !decoded.sub) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+    if (userError || !userData?.user) {
+      console.error("Erreur de vérification Supabase :", userError);
+      return NextResponse.json({ error: "Token invalide ou expiré" }, { status: 401 });
     }
 
-    const supabase = createClient()
+    const userId = userData.user.id;
+    const userEmail = userData.user.email;
 
-    // Vérifier que l'utilisateur existe dans la base de données
-    const { data: user, error: userError } = await supabase
+    // Vérifie si l'utilisateur existe dans ta table personnalisée (et non auth.users)
+    const { data: user, error } = await supabase
       .from("users")
       .select("id, email, created_at")
-      .eq("id", decoded.sub)
-      .single()
+      .eq("id", userId)
+      .single();
 
-    if (userError || !user) {
-      // Si l'utilisateur n'existe pas, le créer
+    if (error || !user) {
+      // Crée l'utilisateur s'il n'existe pas encore
       const { data: newUser, error: createError } = await supabase
         .from("users")
         .insert({
-          id: decoded.sub,
-          email: decoded.email || "",
-          created_at: new Date().toISOString(),
+          id: userId,
+          email: userEmail,
         })
         .select()
-        .single()
+        .single();
 
       if (createError) {
-        console.error("Error creating user:", createError)
-        return NextResponse.json({ error: "Failed to create user" }, { status: 500 })
+        console.error("Erreur lors de la création de l'utilisateur :", createError);
+        return NextResponse.json({ error: "Échec de la création de l'utilisateur" }, { status: 500 });
       }
 
       return NextResponse.json({
         valid: true,
         user: newUser,
-        message: "User created and verified",
-      })
+        message: "Utilisateur créé et vérifié",
+      });
     }
 
     return NextResponse.json({
       valid: true,
       user,
-      message: "User verified",
-    })
+      message: "Utilisateur vérifié",
+    });
   } catch (error) {
-    console.error("Token verification error:", error)
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+    console.error("Erreur serveur :", error);
+    return NextResponse.json({ error: "Erreur lors de la vérification" }, { status: 500 });
   }
 }

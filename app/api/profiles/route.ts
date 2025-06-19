@@ -1,7 +1,84 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/utils/supabase/server"
+import jwt from "jsonwebtoken"
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
+
+  // --- Cas spécial : recherche des feeds d'un profil ---
+  if (url.searchParams.get("inFeeds") === "true") {
+    try {
+      const authHeader = request.headers.get("authorization");
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return NextResponse.json({ error: "No token provided" }, { status: 401 });
+      }
+      const token = authHeader.substring(7);
+      const decoded = jwt.verify(token, process.env.SUPABASE_JWT_SECRET!) as any;
+      if (!decoded || !decoded.sub) {
+        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      }
+
+      const uniqueId = url.searchParams.get("uniqueId");
+      const linkedinUrl = url.searchParams.get("linkedinUrl");
+
+      if (!uniqueId && !linkedinUrl) {
+        return NextResponse.json({ error: "uniqueId or linkedinUrl required" }, { status: 400 });
+      }
+
+      const supabase = createClient();
+
+      // Chercher le(s) profil(s) correspondant(s)
+      let profileQuery = supabase.from("profiles").select("id");
+      if (uniqueId && linkedinUrl) {
+        profileQuery = profileQuery.or(`unique_id.eq.${uniqueId},linkedin_url.eq.${linkedinUrl}`);
+      } else if (uniqueId) {
+        profileQuery = profileQuery.eq("unique_id", uniqueId);
+      } else {
+        profileQuery = profileQuery.eq("linkedin_url", linkedinUrl);
+      }
+      const { data: profiles, error: profileError } = await profileQuery;
+      if (profileError) {
+        return NextResponse.json({ error: "Error searching profile" }, { status: 500 });
+      }
+      if (!profiles || profiles.length === 0) {
+        return NextResponse.json({ feeds: [] });
+      }
+      const profileIds = profiles.map((p) => p.id);
+
+      // Chercher les feeds de l'utilisateur contenant ce(s) profil(s)
+      const { data: feedProfiles, error: feedProfilesError } = await supabase
+        .from("feed_profiles")
+        .select("feed_id")
+        .in("profile_id", profileIds);
+
+      if (feedProfilesError) {
+        return NextResponse.json({ error: "Error searching feeds" }, { status: 500 });
+      }
+      const feedIds = feedProfiles.map((fp) => fp.feed_id);
+
+      if (feedIds.length === 0) {
+        return NextResponse.json({ feeds: [] });
+      }
+
+      // Récupérer les infos des feeds de l'utilisateur courant
+      const { data: feeds, error: feedsError } = await supabase
+        .from("feeds")
+        .select("id, name")
+        .in("id", feedIds)
+        .eq("user_id", decoded.sub);
+
+      if (feedsError) {
+        return NextResponse.json({ error: "Error fetching feeds" }, { status: 500 });
+      }
+
+      return NextResponse.json({ feeds: feeds || [] });
+    } catch (error) {
+      console.error("Error in GET /api/profiles?inFeeds=true:", error);
+      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    }
+  }
+
+  // --- GET classique : récupérer tous les profils associés aux feeds de l'utilisateur ---
   const supabase = createClient()
 
   const {
